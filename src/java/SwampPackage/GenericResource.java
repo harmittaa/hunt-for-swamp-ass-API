@@ -200,8 +200,8 @@ public class GenericResource {
                 jsonObjectBuilder.add("title", gameMode.getTitle());
                 jsonObjectBuilder.add("description", gameMode.getDescription());
                 for (Hunt hunt : gameMode.getHuntCollection()) {
-                    huntObjectBuilder.add("GameModeId", gameMode.getGamemodeid());
-                    huntObjectBuilder.add("List size", gameMode.getHuntCollection().size());
+                   // huntObjectBuilder.add("GameModeId", gameMode.getGamemodeid());
+                   // huntObjectBuilder.add("List size", gameMode.getHuntCollection().size());
                     huntObjectBuilder.add("id", hunt.getHuntid());
                     huntObjectBuilder.add("title", hunt.getTitle());
                     huntObjectBuilder.add("description", hunt.getDescription());
