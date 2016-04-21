@@ -186,10 +186,8 @@ public class GenericResource {
         locationObjectBuilder = Json.createObjectBuilder();
         locationHeaderBuilder = Json.createObjectBuilder();
         locationArrayBuilder = Json.createArrayBuilder();
-        
         clueObjectBuilder = Json.createObjectBuilder();
         clueArrayBuilder = Json.createArrayBuilder();
-        
         jsonArrayBuilder = Json.createArrayBuilder();
         jsonHeaderObjectBuilder = Json.createObjectBuilder();
         createTransaction();
@@ -200,8 +198,6 @@ public class GenericResource {
                 jsonObjectBuilder.add("title", gameMode.getTitle());
                 jsonObjectBuilder.add("description", gameMode.getDescription());
                 for (Hunt hunt : gameMode.getHuntCollection()) {
-                   // huntObjectBuilder.add("GameModeId", gameMode.getGamemodeid());
-                   // huntObjectBuilder.add("List size", gameMode.getHuntCollection().size());
                     huntObjectBuilder.add("id", hunt.getHuntid());
                     huntObjectBuilder.add("title", hunt.getTitle());
                     huntObjectBuilder.add("description", hunt.getDescription());
@@ -222,6 +218,7 @@ public class GenericResource {
                             clueObjectBuilder.add("id", clue.getClueid());
                             clueObjectBuilder.add("title", clue.getCluetitle());
                             clueObjectBuilder.add("description", clue.getCluedescription());
+                            clueObjectBuilder.add("media", clue.getMedia());
                             clueObject = clueObjectBuilder.build();
                             clueArrayBuilder.add(clueObject);
                         }
@@ -239,7 +236,6 @@ public class GenericResource {
                 }
                 jsonObjectBuilder.add("Hunts", huntArrayBuilder.build());
                 huntArrayBuilder = Json.createArrayBuilder();
-
                 jsonObject = jsonObjectBuilder.build();
                 jsonArrayBuilder.add(jsonObject);
             }

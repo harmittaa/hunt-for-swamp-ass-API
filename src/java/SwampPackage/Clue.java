@@ -35,6 +35,10 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Clue.findByCluedescription", query = "SELECT c FROM Clue c WHERE c.cluedescription = :cluedescription")})
 public class Clue implements Serializable {
 
+    @Size(max = 255)
+    @Column(name = "MEDIA")
+    private String media;
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -113,6 +117,14 @@ public class Clue implements Serializable {
     @Override
     public String toString() {
         return "SwampPackage.Clue[ clueid=" + clueid + " ]";
+    }
+
+    public String getMedia() {
+        return media;
+    }
+
+    public void setMedia(String media) {
+        this.media = media;
     }
     
 }
