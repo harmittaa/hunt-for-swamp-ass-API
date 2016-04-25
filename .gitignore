@@ -10,3 +10,4 @@ src/conf/persistence.xml
 ehthumbs.db
 Thumbs.db
 **/webApp.war
+/dist

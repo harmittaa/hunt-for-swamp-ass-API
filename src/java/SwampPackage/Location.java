@@ -38,6 +38,10 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Location.findByWindescription", query = "SELECT l FROM Location l WHERE l.windescription = :windescription")})
 public class Location implements Serializable {
 
+    @Size(max = 255)
+    @Column(name = "TITLE")
+    private String title;
+
     @ManyToMany(mappedBy = "locationCollection")
     private Collection<Hunt> huntCollection;
 
@@ -142,6 +146,14 @@ public class Location implements Serializable {
 
     public void setHuntCollection(Collection<Hunt> huntCollection) {
         this.huntCollection = huntCollection;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
     
 }

@@ -197,14 +197,17 @@ public class GenericResource {
                 jsonObjectBuilder.add("id", gameMode.getGamemodeid());
                 jsonObjectBuilder.add("title", gameMode.getTitle());
                 jsonObjectBuilder.add("description", gameMode.getDescription());
+                jsonObjectBuilder.add("media", gameMode.getMedia());
                 for (Hunt hunt : gameMode.getHuntCollection()) {
                     huntObjectBuilder.add("id", hunt.getHuntid());
                     huntObjectBuilder.add("title", hunt.getTitle());
                     huntObjectBuilder.add("description", hunt.getDescription());
                     huntObjectBuilder.add("winTitle", hunt.getWintitle());
                     huntObjectBuilder.add("winDescription", hunt.getWindescription());
+                    huntObjectBuilder.add("media", hunt.getMedia());
                     for (Location location : hunt.getLocationCollection()) {
                         locationObjectBuilder.add("id", location.getLocationid());
+                        locationObjectBuilder.add("title", location.getTitle());
                         locationObjectBuilder.add("winTitle", location.getWintitle());
                         locationObjectBuilder.add("winDescription", location.getWindescription());
                         beacon = (Beacon) em.createNamedQuery("Beacon.findByBeaconid").setParameter("beaconid", location.getBeaconid().getBeaconid()).getSingleResult();

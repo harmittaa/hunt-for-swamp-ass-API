@@ -40,6 +40,10 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Hunt.findByDescription", query = "SELECT h FROM Hunt h WHERE h.description = :description")})
 public class Hunt implements Serializable {
 
+    @Size(max = 255)
+    @Column(name = "MEDIA")
+    private String media;
+
     @JoinTable(name = "J_HUNT_LOCATION", joinColumns = {
         @JoinColumn(name = "HUNTID", referencedColumnName = "HUNTID")}, inverseJoinColumns = {
         @JoinColumn(name = "LOCATIONID", referencedColumnName = "LOCATIONID")})
@@ -158,6 +162,14 @@ public class Hunt implements Serializable {
 
     public void setLocationCollection(Collection<Location> locationCollection) {
         this.locationCollection = locationCollection;
+    }
+
+    public String getMedia() {
+        return media;
+    }
+
+    public void setMedia(String media) {
+        this.media = media;
     }
     
 }

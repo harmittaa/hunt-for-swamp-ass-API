@@ -37,6 +37,10 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Gamemode.findByDescription", query = "SELECT g FROM Gamemode g WHERE g.description = :description")})
 public class Gamemode implements Serializable {
 
+    @Size(max = 255)
+    @Column(name = "MEDIA")
+    private String media;
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -115,6 +119,14 @@ public class Gamemode implements Serializable {
     @Override
     public String toString() {
         return "SwampPackage.Gamemode[ gamemodeid=" + gamemodeid + " ]";
+    }
+
+    public String getMedia() {
+        return media;
+    }
+
+    public void setMedia(String media) {
+        this.media = media;
     }
     
 }
