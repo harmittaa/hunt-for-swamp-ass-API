@@ -208,6 +208,7 @@ public class GenericResource {
                     for (Location location : hunt.getLocationCollection()) {
                         locationObjectBuilder.add("id", location.getLocationid());
                         locationObjectBuilder.add("title", location.getTitle());
+                        locationObjectBuilder.add("media", location.getMedia());
                         locationObjectBuilder.add("winTitle", location.getWintitle());
                         locationObjectBuilder.add("winDescription", location.getWindescription());
                         beacon = (Beacon) em.createNamedQuery("Beacon.findByBeaconid").setParameter("beaconid", location.getBeaconid().getBeaconid()).getSingleResult();

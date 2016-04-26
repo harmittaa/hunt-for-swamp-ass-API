@@ -39,6 +39,10 @@ import javax.xml.bind.annotation.XmlTransient;
 public class Location implements Serializable {
 
     @Size(max = 255)
+    @Column(name = "MEDIA")
+    private String media;
+
+    @Size(max = 255)
     @Column(name = "TITLE")
     private String title;
 
@@ -154,6 +158,14 @@ public class Location implements Serializable {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getMedia() {
+        return media;
+    }
+
+    public void setMedia(String media) {
+        this.media = media;
     }
     
 }
