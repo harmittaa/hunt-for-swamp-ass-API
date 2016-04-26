@@ -171,6 +171,7 @@ public class GenericResource {
         return response;
     }
 
+    // get all necessary data to iniatiate the game
     @GET
     @Path("getAll")
     @Produces("application/json")
