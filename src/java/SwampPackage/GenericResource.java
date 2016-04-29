@@ -8,7 +8,6 @@ package SwampPackage;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -20,6 +19,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
 import javax.ws.rs.PathParam;
@@ -43,6 +43,9 @@ public class GenericResource {
     Hunt hunt;
     Clue clue;
     String text;
+    User newUser;
+    User user;
+    CompletedHunt completedHunt;
     List<Gamemode> gamemodeList;
     JsonObjectBuilder jsonObjectBuilder;
     JsonObjectBuilder jsonHeaderObjectBuilder;
@@ -66,6 +69,7 @@ public class GenericResource {
     JsonObject locationObject;
     JsonObject beaconObject;
     List<Hunt> huntList;
+    List<User> userList;
 
     @Context
     private UriInfo context;
@@ -170,6 +174,145 @@ public class GenericResource {
         endTransaction();
         return response;
     }
+    
+    @GET
+    @Path("addUser/{username}/{password}/{media}/{description}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response addUser(@PathParam("username") String username,
+                            @PathParam("description") String desc, 
+                            @PathParam("password") String password, 
+                            @PathParam("media") String media) {
+        Response response;
+        createTransaction();
+        jsonObjectBuilder = Json.createObjectBuilder();
+        this.userList = em.createNamedQuery("User.findAll").getResultList();
+        for (User u : this.userList) {
+            if (u.getUsername().equalsIgnoreCase(username)) {
+                jsonObjectBuilder.add("User exists", "The user already exists");
+                response = Response.status(402).entity(jsonObjectBuilder.build()).build();
+                endTransaction();
+                return response;
+            }
+        }
+        newUser = new User();
+        newUser.setUsername(username);
+        newUser.setUserpass(password);
+        newUser.setUsermedia("http://23.227.190.85/hasseman.jpg");
+        newUser.setUserdescription(desc);
+        em.persist(newUser);
+        user = (User) em.createNamedQuery("User.findByUsername").setParameter("username", username).getSingleResult();
+        jsonObjectBuilder.add("OK", user.getUserid());
+        response = Response.status(200).entity(jsonObjectBuilder.build()).build();
+        endTransaction();
+        return response;
+    }
+    
+    @GET
+    @Path("checkPassword/{username}/{password}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response checkPassword(@PathParam("username") String username, @PathParam("password") String password) {
+        Response response;
+        createTransaction();
+        jsonObjectBuilder = Json.createObjectBuilder();
+        jsonArrayBuilder = Json.createArrayBuilder();
+        jsonHeaderObjectBuilder = Json.createObjectBuilder();
+        this.userList = em.createNamedQuery("User.findAll").getResultList();
+        for (User u : this.userList) {
+            if (u.getUsername().equals(username) && u.getUserpass().equals(password)) {
+                jsonObjectBuilder.add("id", u.getUserid());
+                jsonObjectBuilder.add("username", u.getUsername());
+                jsonObjectBuilder.add("description", u.getUserdescription());
+                jsonObjectBuilder.add("media", u.getUsermedia());
+                jsonHeaderObjectBuilder.add("user", jsonArrayBuilder.add(jsonObjectBuilder.build()).build());
+                
+                response = Response.status(200).entity(jsonHeaderObjectBuilder.build()).build();
+                endTransaction();
+                return response;
+            }
+        }
+        endTransaction();
+        jsonObjectBuilder.add("error", "Info doesn't match");
+        response = Response.status(402).entity(jsonObjectBuilder.build()).build();
+        return response;
+    }
+    
+   /* @GET
+    @Path("getUserData/{userid}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response getUserData(@PathParam("userid") String userid) {
+        Response response;
+        jsonObjectBuilder = Json.createObjectBuilder();
+        this.user = (User) em.createNamedQuery("User.findByUserid").setParameter("userid", Integer.parseInt(userid)).getSingleResult();
+        jsonObjectBuilder.add("", BigDecimal.ONE)
+        
+        return response;
+    } */
+    
+    @GET
+    @Path("saveScore/{userId}/{huntId}/{points}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response saveScore (@PathParam("userId") String userid, @PathParam("huntId") String huntid, @PathParam("points") String points) {
+        Response response;
+        jsonObjectBuilder = Json.createObjectBuilder();
+        createTransaction();
+        user = (User) em.createNamedQuery("User.findByUserid").setParameter("userid", Integer.parseInt(userid)).getSingleResult();
+        hunt = (Hunt) em.createNamedQuery("Hunt.findByHuntid").setParameter("huntid", Integer.parseInt(huntid)).getSingleResult();
+        completedHunt = new CompletedHunt();
+        completedHunt.setUserid(user);
+        completedHunt.setHuntid(hunt);
+        completedHunt.setPoints(Integer.parseInt(points));
+        em.persist(completedHunt);
+        jsonObjectBuilder.add("OK", "Saved points");
+        response = Response.status(200).entity(jsonObjectBuilder.build()).build();
+        endTransaction();
+        return response;
+    }
+    
+    
+    @GET
+    @Path("getHuntScoreByUserId/{userId}/{huntId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response getHuntScoreByUserId (@PathParam("userId") String userid, @PathParam("huntId") String huntid) {
+        Response response;
+        jsonObjectBuilder = Json.createObjectBuilder();
+        createTransaction();
+        user = (User) em.createNamedQuery("User.findByUserid").setParameter("userid", Integer.parseInt(userid)).getSingleResult();
+        for (CompletedHunt huntComplete : user.getCompletedHuntCollection()) {
+            if (huntComplete.getHuntid().getHuntid() == Integer.parseInt(huntid)) {
+                jsonObjectBuilder.add("points", huntComplete.getPoints());
+                return Response.ok(jsonObjectBuilder.build()).build();
+            }
+        }
+        response = Response.ok("No score").build();
+        endTransaction();
+        return response;
+    }
+
+    @GET
+    @Path("getHuntScores/{huntId}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response getHuntScores (@PathParam("huntId") String huntid) {
+        Response response;
+        jsonObjectBuilder = Json.createObjectBuilder();
+        jsonArrayBuilder = Json.createArrayBuilder();
+        createTransaction();
+        hunt = (Hunt) em.createNamedQuery("Hunt.findByHuntid").setParameter("huntid", Integer.parseInt(huntid)).getSingleResult();
+        for (CompletedHunt huntComplete : hunt.getCompletedHuntCollection()) {
+            jsonObjectBuilder.add(huntComplete.getUserid().getUsername(), huntComplete.getPoints());
+            jsonArrayBuilder.add(jsonObjectBuilder.build());
+            jsonObjectBuilder = Json.createObjectBuilder();
+        }
+        response = Response.ok(jsonArrayBuilder.build()).build();
+        endTransaction();
+        return response;
+    }
+
 
     // get all necessary data to iniatiate the game
     @GET

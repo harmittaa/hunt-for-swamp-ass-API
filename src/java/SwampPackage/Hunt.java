@@ -18,6 +18,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlElement;
@@ -39,6 +40,9 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Hunt.findByWintitle", query = "SELECT h FROM Hunt h WHERE h.wintitle = :wintitle"),
     @NamedQuery(name = "Hunt.findByDescription", query = "SELECT h FROM Hunt h WHERE h.description = :description")})
 public class Hunt implements Serializable {
+
+    @OneToMany(mappedBy = "huntid")
+    private Collection<CompletedHunt> completedHuntCollection;
 
     @Size(max = 255)
     @Column(name = "MEDIA")
@@ -170,6 +174,15 @@ public class Hunt implements Serializable {
 
     public void setMedia(String media) {
         this.media = media;
+    }
+
+    @XmlTransient
+    public Collection<CompletedHunt> getCompletedHuntCollection() {
+        return completedHuntCollection;
+    }
+
+    public void setCompletedHuntCollection(Collection<CompletedHunt> completedHuntCollection) {
+        this.completedHuntCollection = completedHuntCollection;
     }
     
 }
