@@ -42,11 +42,11 @@ public class GenericResource {
     Beacon beacon;
     Hunt hunt;
     Clue clue;
-    String text;
     User newUser;
     User user;
     CompletedHunt completedHunt;
-    List<Gamemode> gamemodeList;
+    String text;
+    Integer userScore;
     JsonObjectBuilder jsonObjectBuilder;
     JsonObjectBuilder jsonHeaderObjectBuilder;
     JsonObjectBuilder beaconObjectBuilder;
@@ -57,6 +57,9 @@ public class GenericResource {
     JsonObjectBuilder huntHeaderBuilder;
     JsonObjectBuilder locationObjectBuilder;
     JsonObjectBuilder locationHeaderBuilder;
+    JsonObjectBuilder scoresObjectBuilder;
+    JsonObjectBuilder scoresHeaderObectBuilder;
+    JsonArrayBuilder scoresArrayBuilder;
     JsonArrayBuilder jsonArrayBuilder;
     JsonArrayBuilder clueArrayBuilder;
     JsonArrayBuilder huntArrayBuilder;
@@ -68,6 +71,7 @@ public class GenericResource {
     JsonObject huntObject;
     JsonObject locationObject;
     JsonObject beaconObject;
+    List<Gamemode> gamemodeList;
     List<Hunt> huntList;
     List<User> userList;
 
@@ -174,15 +178,15 @@ public class GenericResource {
         endTransaction();
         return response;
     }
-    
+
     @GET
     @Path("addUser/{username}/{password}/{media}/{description}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces("application/json")
     public Response addUser(@PathParam("username") String username,
-                            @PathParam("description") String desc, 
-                            @PathParam("password") String password, 
-                            @PathParam("media") String media) {
+            @PathParam("description") String desc,
+            @PathParam("password") String password,
+            @PathParam("media") String media) {
         Response response;
         createTransaction();
         jsonObjectBuilder = Json.createObjectBuilder();
@@ -207,7 +211,7 @@ public class GenericResource {
         endTransaction();
         return response;
     }
-    
+
     @GET
     @Path("checkPassword/{username}/{password}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -226,7 +230,7 @@ public class GenericResource {
                 jsonObjectBuilder.add("description", u.getUserdescription());
                 jsonObjectBuilder.add("media", u.getUsermedia());
                 jsonHeaderObjectBuilder.add("user", jsonArrayBuilder.add(jsonObjectBuilder.build()).build());
-                
+
                 response = Response.status(200).entity(jsonHeaderObjectBuilder.build()).build();
                 endTransaction();
                 return response;
@@ -237,8 +241,8 @@ public class GenericResource {
         response = Response.status(402).entity(jsonObjectBuilder.build()).build();
         return response;
     }
-    
-   /* @GET
+
+    /* @GET
     @Path("getUserData/{userid}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces("application/json")
@@ -250,12 +254,11 @@ public class GenericResource {
         
         return response;
     } */
-    
     @GET
     @Path("saveScore/{userId}/{huntId}/{points}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces("application/json")
-    public Response saveScore (@PathParam("userId") String userid, @PathParam("huntId") String huntid, @PathParam("points") String points) {
+    public Response saveScore(@PathParam("userId") String userid, @PathParam("huntId") String huntid, @PathParam("points") String points) {
         Response response;
         jsonObjectBuilder = Json.createObjectBuilder();
         createTransaction();
@@ -271,13 +274,41 @@ public class GenericResource {
         endTransaction();
         return response;
     }
-    
-    
+
+    @GET
+    @Path("getUserScores")
+    @Produces("application/json")
+    public Response getUserScores() {
+        jsonObjectBuilder = Json.createObjectBuilder();
+        jsonHeaderObjectBuilder = Json.createObjectBuilder();
+        jsonArrayBuilder = Json.createArrayBuilder();
+        createTransaction();
+        userList = em.createNamedQuery("User.findAll").getResultList();
+        for (User u : userList) {
+            userScore = 0;
+            for (CompletedHunt compHunt : u.getCompletedHuntCollection()) {
+                userScore += compHunt.getPoints();
+            }
+            if (userScore > 0) {
+                jsonObjectBuilder.add("id", u.getUserid());
+                jsonObjectBuilder.add("username", u.getUsername());
+                jsonObjectBuilder.add("description", u.getUserdescription());
+                jsonObjectBuilder.add("media", u.getUsermedia());
+                jsonObjectBuilder.add("score", userScore);
+                jsonArrayBuilder.add(jsonObjectBuilder.build());
+                jsonObjectBuilder = Json.createObjectBuilder();
+            }
+        }
+        jsonHeaderObjectBuilder.add("users", jsonArrayBuilder.build());
+        endTransaction();
+        return Response.ok(jsonHeaderObjectBuilder.build()).build();
+    }
+
     @GET
     @Path("getHuntScoreByUserId/{userId}/{huntId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces("application/json")
-    public Response getHuntScoreByUserId (@PathParam("userId") String userid, @PathParam("huntId") String huntid) {
+    public Response getHuntScoreByUserId(@PathParam("userId") String userid, @PathParam("huntId") String huntid) {
         Response response;
         jsonObjectBuilder = Json.createObjectBuilder();
         createTransaction();
@@ -297,7 +328,7 @@ public class GenericResource {
     @Path("getHuntScores/{huntId}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces("application/json")
-    public Response getHuntScores (@PathParam("huntId") String huntid) {
+    public Response getHuntScores(@PathParam("huntId") String huntid) {
         Response response;
         jsonObjectBuilder = Json.createObjectBuilder();
         jsonArrayBuilder = Json.createArrayBuilder();
@@ -313,7 +344,6 @@ public class GenericResource {
         return response;
     }
 
-
     // get all necessary data to iniatiate the game
     @GET
     @Path("getAll")
@@ -323,6 +353,9 @@ public class GenericResource {
         jsonObjectBuilder = Json.createObjectBuilder();
         huntObjectBuilder = Json.createObjectBuilder();
         huntHeaderBuilder = Json.createObjectBuilder();
+        scoresObjectBuilder = Json.createObjectBuilder();
+        scoresHeaderObectBuilder = Json.createObjectBuilder();
+        scoresArrayBuilder = Json.createArrayBuilder();
         beaconObjectBuilder = Json.createObjectBuilder();
         beaconHeaderBuilder = Json.createObjectBuilder();
         beaconArrayBuilder = Json.createArrayBuilder();
@@ -349,6 +382,11 @@ public class GenericResource {
                     huntObjectBuilder.add("winTitle", hunt.getWintitle());
                     huntObjectBuilder.add("winDescription", hunt.getWindescription());
                     huntObjectBuilder.add("media", hunt.getMedia());
+                    for (CompletedHunt scores : hunt.getCompletedHuntCollection()) {
+                        scoresObjectBuilder.add("username", scores.getUserid().getUsername());
+                        scoresObjectBuilder.add("score", scores.getPoints());
+                        scoresArrayBuilder.add(scoresObjectBuilder.build());
+                    }
                     for (Location location : hunt.getLocationCollection()) {
                         locationObjectBuilder.add("id", location.getLocationid());
                         locationObjectBuilder.add("title", location.getTitle());
@@ -377,6 +415,8 @@ public class GenericResource {
                         locationObject = locationObjectBuilder.build();
                         locationArrayBuilder.add(locationObject);
                     }
+                    huntObjectBuilder.add("Scores", scoresArrayBuilder.build());
+                    scoresArrayBuilder = Json.createArrayBuilder();
                     huntObjectBuilder.add("Locations", locationArrayBuilder.build());
                     locationArrayBuilder = Json.createArrayBuilder();
                     huntObject = huntObjectBuilder.build();

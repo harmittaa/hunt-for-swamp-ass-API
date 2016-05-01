@@ -12,3 +12,4 @@ Thumbs.db
 **/webApp.war
 dist/**
 dist/
+**/*.war
