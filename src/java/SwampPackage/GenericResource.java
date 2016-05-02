@@ -230,7 +230,6 @@ public class GenericResource {
                 jsonObjectBuilder.add("description", u.getUserdescription());
                 jsonObjectBuilder.add("media", u.getUsermedia());
                 jsonHeaderObjectBuilder.add("user", jsonArrayBuilder.add(jsonObjectBuilder.build()).build());
-
                 response = Response.status(200).entity(jsonHeaderObjectBuilder.build()).build();
                 endTransaction();
                 return response;
@@ -242,18 +241,6 @@ public class GenericResource {
         return response;
     }
 
-    /* @GET
-    @Path("getUserData/{userid}")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces("application/json")
-    public Response getUserData(@PathParam("userid") String userid) {
-        Response response;
-        jsonObjectBuilder = Json.createObjectBuilder();
-        this.user = (User) em.createNamedQuery("User.findByUserid").setParameter("userid", Integer.parseInt(userid)).getSingleResult();
-        jsonObjectBuilder.add("", BigDecimal.ONE)
-        
-        return response;
-    } */
     @GET
     @Path("saveScore/{userId}/{huntId}/{points}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -262,8 +249,21 @@ public class GenericResource {
         Response response;
         jsonObjectBuilder = Json.createObjectBuilder();
         createTransaction();
+        Boolean checker = false;
         user = (User) em.createNamedQuery("User.findByUserid").setParameter("userid", Integer.parseInt(userid)).getSingleResult();
         hunt = (Hunt) em.createNamedQuery("Hunt.findByHuntid").setParameter("huntid", Integer.parseInt(huntid)).getSingleResult();
+        for (CompletedHunt ch : user.getCompletedHuntCollection()) {
+            if (ch.getHuntid().getHuntid() == hunt.getHuntid()) {
+                if (ch.getPoints() > Integer.parseInt(points)) {
+                    endTransaction();
+                    return Response.ok(jsonObjectBuilder.add("old score is higher", "try again")).build();
+                } else {
+                    endTransaction();
+                    ch.setPoints(Integer.parseInt(points));
+                    return Response.ok(jsonObjectBuilder.add("replaced old score", "congrats")).build();
+                }
+            }
+        }       
         completedHunt = new CompletedHunt();
         completedHunt.setUserid(user);
         completedHunt.setHuntid(hunt);
@@ -320,6 +320,44 @@ public class GenericResource {
             }
         }
         response = Response.ok("No score").build();
+        endTransaction();
+        return response;
+    }
+
+    @GET
+    @Path("getAllHuntsScores")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces("application/json")
+    public Response getAllHuntsScores(@PathParam("huntId") String huntid) {
+        Response response;
+        jsonObjectBuilder = Json.createObjectBuilder();
+        jsonArrayBuilder = Json.createArrayBuilder();
+        jsonHeaderObjectBuilder = Json.createObjectBuilder();
+        huntObjectBuilder = Json.createObjectBuilder();
+        huntArrayBuilder = Json.createArrayBuilder();
+        huntHeaderBuilder = Json.createObjectBuilder();
+        createTransaction();
+        huntList = em.createNamedQuery("Hunt.findAll").getResultList();
+        for (Hunt hunt : this.huntList) {
+            if (hunt.getCompletedHuntCollection().size() >= 1) {
+                huntObjectBuilder.add("hunt", hunt.getHuntid());
+                for (CompletedHunt huntComplete : hunt.getCompletedHuntCollection()) {
+                    jsonObjectBuilder.add("id", huntComplete.getUserid().getUserid());
+                    jsonObjectBuilder.add("username", huntComplete.getUserid().getUsername());
+                    jsonObjectBuilder.add("description", huntComplete.getUserid().getUserdescription());
+                    jsonObjectBuilder.add("media", huntComplete.getUserid().getUsermedia());
+                    jsonObjectBuilder.add("score", huntComplete.getPoints());
+                    jsonArrayBuilder.add(jsonObjectBuilder.build());
+                    jsonObjectBuilder = Json.createObjectBuilder();
+                }
+                huntObjectBuilder.add("users", jsonArrayBuilder.build());
+                huntArrayBuilder.add(huntObjectBuilder.build());
+                jsonArrayBuilder = Json.createArrayBuilder();
+                huntObjectBuilder = Json.createObjectBuilder();
+            }
+        }
+        jsonHeaderObjectBuilder.add("Scores", huntArrayBuilder.build());
+        response = Response.ok(jsonHeaderObjectBuilder.build()).build();
         endTransaction();
         return response;
     }
