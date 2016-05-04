@@ -3,7 +3,8 @@ hunt-for-swamp-ass-API
 
 Back end API for the Hunt for the Swamp Ass project. Hunt for the Swamp Ass is created by Daniel Zakharin & Matti Mäki-Kihniä.
 
-LINK
+The code for the Restful API, that is used to fetch information from the back end, can be found [here](https://github.com/harmittaa/hunt-for-the-swamp-ass-client).
+
 
 ##### Functionality
 
